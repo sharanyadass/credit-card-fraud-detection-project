@@ -12,7 +12,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score, roc_curve
 
 # Load the dataset
-# Replace 'creditcard.csv' with your actual dataset path
 df = pd.read_csv('creditcard.csv')
 
 # Explore the data
