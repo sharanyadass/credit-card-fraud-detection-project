@@ -1,0 +1,89 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Machine Learning
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score, roc_curve
+
+# Load the dataset
+# Replace 'creditcard.csv' with your actual dataset path
+df = pd.read_csv('creditcard.csv')
+
+# Explore the data
+print(df.head())
+print(df.info())
+print(df['Class'].value_counts())
+
+# Visualize class imbalance
+sns.countplot(x='Class', data=df)
+plt.title('Class Distribution')
+plt.show()
+
+# Data Preprocessing
+# Drop 'Time' column if present, as it's often not useful
+if 'Time' in df.columns:
+    df = df.drop(['Time'], axis=1)
+
+# Scale 'Amount'
+scaler = StandardScaler()
+df['Amount'] = scaler.fit_transform(df['Amount'].values.reshape(-1, 1))
+
+# Split features and target
+X = df.drop('Class', axis=1)
+y = df['Class']
+
+# Train-test split (stratify to handle imbalance)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y)
+
+# Model: Random Forest (good baseline)
+model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
+model.fit(X_train, y_train)
+
+# Predictions
+y_pred = model.predict(X_test)
+y_pred_proba = model.predict_proba(X_test)[:,1]
+
+# Evaluation
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+# ROC and AUC
+roc_auc = roc_auc_score(y_test, y_pred_proba)
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
+plt.plot(fpr, tpr, label='Random Forest (AUC = {:.2f})'.format(roc_auc))
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.legend()
+plt.show()
+
+# Feature Importance
+importances = model.feature_importances_
+features = X.columns
+indices = np.argsort(importances)[::-1]
+plt.figure(figsize=(10,6))
+plt.title("Feature Importances")
+sns.barplot(y=features[indices], x=importances[indices], orient='h')
+plt.show()
+
+# Predict on new data
+def predict_transaction(transaction):
+    transaction_df = pd.DataFrame([transaction], columns=X.columns)
+    transaction_df['Amount'] = scaler.transform(transaction_df['Amount'].values.reshape(-1, 1))
+    prediction = model.predict(transaction_df)
+    return 'Fraud' if prediction[0] == 1 else 'Not Fraud'
+
+# Example usage:
+# transaction = X_test.iloc[0].to_dict()
+# print(predict_transaction(transaction))
+
+Add complete credit card fraud detection project with data preprocessing, model training, and evaluation
