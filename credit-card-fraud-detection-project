@@ -85,5 +85,3 @@ def predict_transaction(transaction):
 # Example usage:
 # transaction = X_test.iloc[0].to_dict()
 # print(predict_transaction(transaction))
-
-Add complete credit card fraud detection project with data preprocessing, model training, and evaluation
